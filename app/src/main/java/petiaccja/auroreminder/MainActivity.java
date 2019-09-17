@@ -16,13 +16,13 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import java.util.Calendar;
 
@@ -62,17 +62,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
-
         drawMap();
-
         connectService();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
         disconnectService();
     }
 
@@ -88,6 +84,11 @@ public class MainActivity extends AppCompatActivity {
     public void onRefresh(View v) {
         refreshCoordinates();
         refreshMap();
+    }
+
+    public void onShowSettings(View v) {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
 

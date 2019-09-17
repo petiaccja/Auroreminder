@@ -16,7 +16,9 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.support.v4.app.ActivityCompat;
+import android.preference.PreferenceManager;
+
+import androidx.core.app.ActivityCompat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -51,7 +53,6 @@ public class AuroraService extends Service implements LocationListener {
     private static final int CONNECTION_WIFI = 1;
     private static final int CONNECTION_CELL = 2;
     private static final int CONNECTION_NONE = 3;
-
 
 
     @Override
@@ -193,8 +194,11 @@ public class AuroraService extends Service implements LocationListener {
         public ArrayList<Messenger> m_requesters = new ArrayList<>();
         public boolean m_forceCellular = false; // Set true to force download over cellular network.
 
-        RefreshMapTask() {}
+        RefreshMapTask() {
+            m_forceCellular = PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getBoolean("use_mobile_data", false);
+        }
         RefreshMapTask(Messenger requestingClient) {
+            this();
             m_requestingClient = requestingClient;
         }
 
@@ -245,7 +249,6 @@ public class AuroraService extends Service implements LocationListener {
             }
 
             m_refreshTask = null;
-            //Toast.makeText(AuroraService.this, "Forced map refresh.", Toast.LENGTH_SHORT).show();
         }
 
 
@@ -265,7 +268,7 @@ public class AuroraService extends Service implements LocationListener {
             int fileSize = 2098950; // File size is always the same value.
 
             try {
-                url = new URL("http://services.swpc.noaa.gov/text/aurora-nowcast-map.txt");
+                url = new URL("https://services.swpc.noaa.gov/text/aurora-nowcast-map.txt");
                 dis = new DataInputStream(url.openStream());
 
                 byte[] buffer = new byte[10240];
@@ -281,6 +284,7 @@ public class AuroraService extends Service implements LocationListener {
                 }
 
                 publishProgress(PHASE_DOWNLOAD, 100);
+                String s = os.toString();
                 return os.toByteArray();
             }
             catch (MalformedURLException ex) {
