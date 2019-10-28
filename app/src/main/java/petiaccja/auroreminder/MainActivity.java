@@ -2,6 +2,8 @@ package petiaccja.auroreminder;
 
 import android.Manifest;
 import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
@@ -11,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -23,6 +26,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import java.util.Calendar;
 
@@ -41,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
     public final double EARTH_RADIUS = 6371000;
     public final double AURORA_ALTITUDE = 100000;
 
+    private final String CHANNEL_ID = "mainChannel";
+    private int m_notificationId = 100;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +64,14 @@ public class MainActivity extends AppCompatActivity {
         PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), 1, myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         AlarmManager am = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
         am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 15 * 60 * 1000, 15 * 60 * 1000, pendingIntent);
+
+        // Create a notification channel.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel( 	CHANNEL_ID, "defChannel", NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("default channel");
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
 
@@ -155,6 +171,10 @@ public class MainActivity extends AppCompatActivity {
             m_coverage /= sumWeights;
         }
 
+        if (m_chance > 0.05) {
+            showNotification(m_chance, m_coverage);
+        }
+
         TextView chanceText = findViewById(R.id.textChance);
         TextView coverageText = findViewById(R.id.textCoverage);
         chanceText.setText(String.format("%.2f", 100*m_chance) + "%");
@@ -169,6 +189,21 @@ public class MainActivity extends AppCompatActivity {
         double x1 = (-2*m*R + Math.sqrt(4*m*m*R*R + 4*(m*m + 1)*(2*R*h + h*h))) / (2*m*m + 2);
         double dtheta = Math.PI/2 - Math.atan((R + m*x1) / x1);
         return Math.toDegrees(dtheta);
+    }
+
+    private void showNotification(double chance, double coverage) {
+        String text = String.format("Chance: %.2f%%, sky coverage: %.2f%%.", 100*m_chance, 100*m_coverage);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.icons8_northern_lights_96)
+                .setContentTitle("Aurora may be visible!")
+                .setContentText(text)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(text))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.cancelAll();
+        notificationManager.notify(++m_notificationId, builder.build());
     }
 
 

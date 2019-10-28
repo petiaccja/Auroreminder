@@ -63,8 +63,6 @@ public class AuroraService extends Service implements LocationListener {
 
     @Override
     public void onCreate() {
-        //Toast.makeText(this, "Service created!", Toast.LENGTH_SHORT).show();
-
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             m_location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -186,7 +184,6 @@ public class AuroraService extends Service implements LocationListener {
         }
     }
 
-
     private class RefreshMapTask extends AsyncTask<Void, Integer, Geomap> {
         private int m_error = ERROR_SUCCESS;
         private long m_lastMillis = 0;
@@ -204,11 +201,11 @@ public class AuroraService extends Service implements LocationListener {
 
         @Override
         protected Geomap doInBackground(Void... args) {
-            byte[] text = DownloadMap();
+            byte[] text = downloadMap();
             if (text == null) {
                 return null;
             }
-            return ParseMap(text);
+            return parseMap(text);
         }
 
         @Override
@@ -252,7 +249,7 @@ public class AuroraService extends Service implements LocationListener {
         }
 
 
-        private byte[] DownloadMap() {
+        private byte[] downloadMap() {
             int connectionType = getConnectionType();
             if (connectionType == CONNECTION_NONE) {
                 m_error = ERROR_CONNECTION;
@@ -306,7 +303,7 @@ public class AuroraService extends Service implements LocationListener {
         }
 
 
-        private Geomap ParseMap(byte[] text) {
+        private Geomap parseMap(byte[] text) {
             final int HORIZONTAL = 1024;
             final int VERTICAL = 512;
             final int LINE_ENDING = 1;
